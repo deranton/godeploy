@@ -1,0 +1,39 @@
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: godeploy-service
+  labels:
+    app: godeploy-service
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: godeploy-service
+    spec:
+      containers:
+      - name: godeploy-service
+        image: deranton/godeploy/godeploy-service:${TAG}
+        command:
+        ports:
+          - containerPort: 8080
+        volumeMounts:
+          - name: godeploy-config
+            mountPath: /etc/godeploy/
+            readOnly: true
+      volumes:
+        - name: godeploy-config
+          configMap: { name: godeploy-config }
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: godeploy-service
+spec:
+  type: LoadBalancer
+  selector:
+    app: godeploy-service
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 8080
